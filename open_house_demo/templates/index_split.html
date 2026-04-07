@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open House — Split</title>
+<style>
+  :root {
+    --bg:#ffffff;
+    --card:#f4f7f9;
+    --accent:#009B8D;
+    --accent2:#F07D00;
+    --text:#111827;
+    --muted:#5a6e80;
+    --green:#2bbb9e;
+    --border:#d0dce6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; }
+  .header {
+    background:#ffffff;
+    padding:0 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:3px solid var(--accent);
+    height:56px;
+    gap:16px;
+  }
+  .header-logos { display:flex; align-items:center; gap:18px; }
+  .header-title { font-size:0.95rem; font-weight:600; letter-spacing:0.03em; color:var(--text); white-space:nowrap; }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .main { display:grid; grid-template-columns:1fr 340px; gap:14px; padding:14px; max-width:1400px; margin:0 auto; }
+  @media(max-width:900px){ .main{grid-template-columns:1fr;} }
+  .video-wrap { background:#000; border-radius:8px; overflow:hidden; }
+  .video-wrap img { width:100%; display:block; }
+  .sidebar { display:flex; flex-direction:column; gap:10px; max-height:calc(100vh - 70px); overflow-y:auto; }
+  .sidebar.hidden { display:none; }
+  .main.full { grid-template-columns:1fr; }
+  #btnToggleSidebar {
+    background:var(--card); border:1px solid var(--border); border-radius:6px;
+    padding:4px 12px; cursor:pointer; font-size:0.82rem; color:var(--text);
+    white-space:nowrap;
+  }
+  .model-badge {
+    font-size:0.72rem; background:var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:2px 9px; color:var(--muted);
+  }
+  .card { background:var(--card); border-radius:8px; padding:14px; border:1px solid var(--border); }
+  .card h2 { font-size:0.82rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--accent); margin-bottom:10px; }
+  .row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .row label { font-size:0.78rem; color:var(--muted); width:85px; flex-shrink:0; }
+  .row > *:not(label) { flex:1; }
+  .slider-row { display:flex; align-items:center; margin-bottom:7px; }
+  .slider-row label { font-size:0.78rem; color:var(--muted); width:85px; flex-shrink:0; }
+  .slider-row input[type=range] { flex:1; margin:0 6px; }
+  .slider-row .val { font-size:0.78rem; width:40px; text-align:right; }
+  .info { font-size:0.85rem; line-height:1.7; }
+  .info b { color:var(--accent2); }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+  .dot.on { background:var(--green); }
+  .dot.off { background:#f44336; }
+  select, input[type=text] {
+    background:#ffffff; color:var(--text); border:1px solid var(--border); padding:5px 8px;
+    border-radius:4px; font-size:0.82rem; width:100%;
+  }
+  input[type=color] {
+    width:50px; height:34px; border:2px solid var(--border); border-radius:6px;
+    background:none; cursor:pointer; padding:2px;
+  }
+  .colour-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .colour-row .preview { width:34px; height:34px; border-radius:6px; border:2px solid var(--border); }
+  .colour-row .hex { font-size:0.85rem; font-family:monospace; }
+  .toggle { position:relative; width:40px; height:22px; flex:0 0 40px; }
+  .toggle input { opacity:0; width:0; height:0; }
+  .toggle span {
+    position:absolute; inset:0; background:#b0bec5; border-radius:22px;
+    cursor:pointer; transition:0.2s;
+  }
+  .toggle span:before {
+    content:""; position:absolute; width:16px; height:16px;
+    left:3px; bottom:3px; background:#fff; border-radius:50%; transition:0.2s;
+  }
+  .toggle input:checked + span { background:var(--accent); }
+  .toggle input:checked + span:before { transform:translateX(18px); }
+  .tag-list { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+  .tag {
+    background:#e0f5f3; border:1px solid var(--accent); padding:2px 10px; border-radius:12px;
+    font-size:0.78rem; display:flex; align-items:center; gap:4px; color:var(--accent);
+  }
+  .tag .x { cursor:pointer; color:var(--accent2); font-weight:bold; font-size:0.9rem; line-height:1; }
+  #addAccepted {
+    background:#ffffff; border:1px dashed var(--border); color:var(--muted);
+    padding:2px 10px; border-radius:12px; cursor:pointer; font-size:0.78rem;
+  }
+  .det-list { max-height:130px; overflow-y:auto; font-size:0.78rem; line-height:1.6; }
+  .det-row { display:flex; justify-content:space-between; }
+  .det-row.target { color:var(--accent); font-weight:600; }
+  .server-stat { font-size:0.75rem; color:var(--muted); margin-top:4px; line-height:1.6; }
+  .server-stat b { color:var(--text); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logos">
+    <img src="/logo/rise" alt="RISE" style="height:34px; object-fit:contain;">
+    <div style="width:1px; height:28px; background:var(--border);"></div>
+    <img src="/logo/husqvarna" alt="Husqvarna" style="height:30px; object-fit:contain;">
+  </div>
+  <div class="header-title">Open House — Split Compute</div>
+  <div class="header-right">
+    <span class="model-badge" id="modeBadge">Remote — YOLOv8l</span>
+    <span class="dot on" id="dot"></span>
+    <span id="fpsText">-- FPS</span>
+    <button id="btnToggleSidebar">⚙ Settings</button>
+  </div>
+</div>
+
+<div class="main">
+  <div>
+    <div class="video-wrap">
+      <img id="feed" src="/video_feed" alt="feed">
+    </div>
+  </div>
+
+  <div class="sidebar">
+
+    <!-- Laptop server -->
+    <div class="card">
+      <h2>Laptop Server</h2>
+      <div class="row">
+        <label>URL</label>
+        <input type="text" id="laptopUrl" placeholder="http://192.168.x.x:5051">
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <span class="dot off" id="serverDot"></span>
+        <span id="serverText" style="font-size:0.82rem;">Not connected</span>
+        <button id="btnPing" style="margin-left:auto; font-size:0.75rem; padding:3px 10px; border:1px solid var(--border); border-radius:4px; background:#fff; cursor:pointer;">Ping</button>
+      </div>
+      <div class="server-stat" id="serverStat"></div>
+    </div>
+
+    <!-- Direction indicator -->
+    <div class="card">
+      <h2>Direction</h2>
+      <div id="dirIndicator" style="display:flex; gap:6px; margin-bottom:10px;">
+        <div id="zoneLeft"  style="flex:1; text-align:center; padding:10px 4px; border-radius:6px; font-size:0.85rem; font-weight:600; background:#f4f7f9; border:1px solid var(--border); color:var(--muted); transition:0.2s;">◀ ROTATE LEFT</div>
+        <div id="zoneFwd"   style="flex:1; text-align:center; padding:10px 4px; border-radius:6px; font-size:0.85rem; font-weight:600; background:#f4f7f9; border:1px solid var(--border); color:var(--muted); transition:0.2s;">▲ FORWARD</div>
+        <div id="zoneRight" style="flex:1; text-align:center; padding:10px 4px; border-radius:6px; font-size:0.85rem; font-weight:600; background:#f4f7f9; border:1px solid var(--border); color:var(--muted); transition:0.2s;">ROTATE RIGHT ▶</div>
+      </div>
+      <div style="font-size:0.72rem; color:var(--muted);">Centre zone = middle 50% of frame</div>
+    </div>
+
+    <!-- Robot control -->
+    <div class="card">
+      <h2>Robot Movement</h2>
+      <div class="row" style="margin-bottom:6px;">
+        <label>Enable</label>
+        <label class="toggle">
+          <input type="checkbox" id="robotEnabled">
+          <span></span>
+        </label>
+        <span id="robotPiNote" style="font-size:0.72rem; color:var(--muted); margin-left:8px;"></span>
+      </div>
+      <div id="robotCmd" style="font-size:0.82rem; font-weight:600; color:var(--accent); margin-bottom:10px; min-height:18px;"></div>
+      <div class="slider-row">
+        <label>Fwd speed</label>
+        <input type="range" min="0.10" max="1.0" step="0.05" value="0.30" id="fwdSpeed">
+        <span class="val" id="v_fwdSpeed">0.30</span>
+      </div>
+      <div class="slider-row">
+        <label>Turn steer</label>
+        <input type="range" min="0.5" max="3.0" step="0.1" value="1.5" id="turnSteer">
+        <span class="val" id="v_turnSteer">1.50</span>
+      </div>
+      <div class="slider-row">
+        <label>Pulse (s)</label>
+        <input type="range" min="0.05" max="0.80" step="0.05" value="0.25" id="pulseDur">
+        <span class="val" id="v_pulseDur">0.25</span>
+      </div>
+      <div class="slider-row">
+        <label>Interval (s)</label>
+        <input type="range" min="0.10" max="1.50" step="0.10" value="0.40" id="evalInterval">
+        <span class="val" id="v_evalInterval">0.40</span>
+      </div>
+    </div>
+
+    <!-- Scared mode -->
+    <div class="card">
+      <h2>Scared Mode</h2>
+      <div class="row" style="margin-bottom:6px;">
+        <label>Enable</label>
+        <label class="toggle">
+          <input type="checkbox" id="scaredEnabled">
+          <span></span>
+        </label>
+        <span id="scaredStatus" style="font-size:0.78rem; font-weight:600; margin-left:8px;"></span>
+      </div>
+      <div class="slider-row">
+        <label>Back speed</label>
+        <input type="range" min="0.05" max="0.60" step="0.05" value="0.20" id="scaredSpeed">
+        <span class="val" id="v_scaredSpeed">0.20</span>
+      </div>
+      <div style="margin-top:8px;">
+        <div style="font-size:0.78rem; color:var(--muted); margin-bottom:4px;">Scary objects:</div>
+        <div class="tag-list" id="scaryTagList"></div>
+        <div style="margin-top:6px; display:flex; gap:4px;">
+          <input type="text" id="newScary" placeholder="e.g. cell phone, umbrella">
+          <button id="addScary">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detection info -->
+    <div class="card">
+      <h2>Detection</h2>
+      <div class="info" id="detInfo">No ball</div>
+      <div class="det-list" id="detList" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- YOLO / Remote settings -->
+    <div class="card" id="cardYolo">
+      <h2>Detection Settings</h2>
+      <div class="slider-row">
+        <label>Confidence</label>
+        <input type="range" min="0.05" max="0.95" step="0.05" value="0.40" id="yolo_conf">
+        <span class="val" id="v_yolo_conf">0.30</span>
+      </div>
+      <div class="row">
+        <label>Show all</label>
+        <label class="toggle">
+          <input type="checkbox" id="yolo_show_all" checked>
+          <span></span>
+        </label>
+      </div>
+      <div style="margin-top:8px;">
+        <div style="font-size:0.78rem; color:var(--muted); margin-bottom:4px;">Accepted labels (target):</div>
+        <div class="tag-list" id="tagList"></div>
+        <div style="margin-top:6px; display:flex; gap:4px;">
+          <input type="text" id="newLabel" placeholder="e.g. ball, frisbee">
+          <button id="addAccepted">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function postSetting(obj) {
+  fetch('/api/settings', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(obj)
+  });
+}
+
+// ---- Sidebar toggle ----
+const _sidebar = document.querySelector('.sidebar');
+const _main = document.querySelector('.main');
+const _btnToggle = document.getElementById('btnToggleSidebar');
+_btnToggle.addEventListener('click', () => {
+  const hidden = _sidebar.classList.toggle('hidden');
+  _main.classList.toggle('full', hidden);
+  _btnToggle.textContent = hidden ? '⚙ Settings' : '✕ Close';
+});
+
+// ---- Laptop URL ----
+const laptopUrlInput = document.getElementById('laptopUrl');
+laptopUrlInput.addEventListener('change', () => {
+  postSetting({laptop_url: laptopUrlInput.value});
+});
+
+// ---- Ping button ----
+document.getElementById('btnPing').addEventListener('click', () => {
+  const stat = document.getElementById('serverStat');
+  stat.textContent = 'Pinging...';
+  fetch('/api/ping_server').then(r=>r.json()).then(d => {
+    const dot = document.getElementById('serverDot');
+    const txt = document.getElementById('serverText');
+    if (d.ok) {
+      dot.className = 'dot on';
+      txt.textContent = 'Connected';
+      stat.innerHTML = '<b>Model:</b> ' + d.model + '  <b>Device:</b> ' + d.device +
+                       '  <b>Requests:</b> ' + d.requests;
+    } else {
+      dot.className = 'dot off';
+      txt.textContent = 'Unreachable';
+      stat.textContent = d.error || 'Unknown error';
+    }
+  }).catch(e => {
+    document.getElementById('serverStat').textContent = 'Ping failed: ' + e;
+  });
+});
+
+// ---- Direction indicator ----
+const ZONE_ACTIVE = {
+  LEFT:    { bg:'#fff4e6', border:'#F07D00', color:'#F07D00' },
+  FORWARD: { bg:'#e6f7f6', border:'#009B8D', color:'#009B8D' },
+  RIGHT:   { bg:'#fff4e6', border:'#F07D00', color:'#F07D00' },
+};
+const ZONE_IDLE = { bg:'#f4f7f9', border:'#d0dce6', color:'#5a6e80' };
+function updateZone(zone) {
+  ['Left','Fwd','Right'].forEach(z => {
+    const el = document.getElementById('zone' + z);
+    const key = z === 'Fwd' ? 'FORWARD' : z.toUpperCase();
+    const active = zone === key;
+    const s = active ? ZONE_ACTIVE[key] : ZONE_IDLE;
+    el.style.background = s.bg;
+    el.style.borderColor = s.border;
+    el.style.color = s.color;
+  });
+}
+
+// ---- Status polling ----
+let _piNoteSet = false;
+function poll() {
+  fetch('/api/status').then(r=>r.json()).then(d => {
+    document.getElementById('fpsText').textContent = d.fps.toFixed(1) + ' FPS';
+    document.getElementById('dot').className = 'dot ' + (d.detected ? 'on' : 'off');
+    updateZone(d.detected ? d.zone : null);
+
+    if (!_piNoteSet) {
+      document.getElementById('robotPiNote').textContent = d.is_pi ? '🤖 Pi detected' : '💻 commands printed only';
+      _piNoteSet = true;
+    }
+    const badge = document.getElementById('modeBadge');
+    if (d.mode === 'remote') {
+      badge.textContent = d.server && d.server.model ? 'Remote — ' + d.server.model.replace('.pt','') : 'Remote — YOLOv8l';
+    } else {
+      badge.textContent = 'Local — YOLOv8n';
+    }
+
+    const scaredEl = document.getElementById('scaredStatus');
+    if (d.scared_enabled && d.is_scared) {
+      scaredEl.style.color = '#f44336';
+      scaredEl.textContent = '😱 SCARED!';
+    } else {
+      scaredEl.style.color = 'var(--muted)';
+      scaredEl.textContent = d.scared_enabled ? 'watching...' : '';
+    }
+    const cmdEl = document.getElementById('robotCmd');
+    if (d.robot_enabled) {
+      const colours = { 'FORWARD':'#009B8D', 'ROTATE LEFT':'#F07D00', 'ROTATE RIGHT':'#F07D00', 'STOP':'#aaa', 'SCARED — REVERSING':'#f44336' };
+      cmdEl.style.color = colours[d.robot_command] || '#aaa';
+      cmdEl.textContent = '▶ ' + (d.robot_command || 'STOP');
+    } else {
+      cmdEl.style.color = '#aaa';
+      cmdEl.textContent = 'Movement disabled';
+    }
+
+    const sv = d.server;
+    if (sv) {
+      const dot = document.getElementById('serverDot');
+      const txt = document.getElementById('serverText');
+      const stat = document.getElementById('serverStat');
+      dot.className = 'dot ' + (sv.connected ? 'on' : 'off');
+      txt.textContent = sv.connected ? 'Connected' : (sv.error ? 'Error' : 'Not connected');
+      if (sv.connected) {
+        stat.innerHTML = '<b>Round-trip:</b> ' + sv.latency_ms + ' ms  <b>Inference:</b> ' + sv.inference_ms + ' ms';
+      } else if (sv.error) {
+        stat.textContent = sv.error;
+      }
+    }
+
+    if (d.detected) {
+      const t = d.target;
+      document.getElementById('detInfo').innerHTML =
+        '<b>' + t.label + '</b> conf=' + t.conf.toFixed(2) +
+        '<br>Position: ' + t.cx + ', ' + t.cy;
+    } else {
+      document.getElementById('detInfo').textContent = 'No ball';
+    }
+
+    const list = document.getElementById('detList');
+    if (d.all_detections && d.all_detections.length > 0) {
+      list.innerHTML = d.all_detections.map(det => {
+        const cls = det.is_target ? 'det-row target' : 'det-row';
+        return '<div class="' + cls + '"><span>' + det.label + '</span><span>' + det.conf.toFixed(2) + '</span></div>';
+      }).join('');
+    } else {
+      list.innerHTML = '';
+    }
+  }).catch(()=>{});
+}
+setInterval(poll, 200);
+
+// ---- YOLO confidence slider ----
+const sldConf = document.getElementById('yolo_conf');
+const valConf = document.getElementById('v_yolo_conf');
+sldConf.addEventListener('input', () => { valConf.textContent = parseFloat(sldConf.value).toFixed(2); });
+sldConf.addEventListener('change', () => { postSetting({yolo_conf: parseFloat(sldConf.value)}); });
+
+// ---- Show all toggle ----
+document.getElementById('yolo_show_all').addEventListener('change', function() {
+  postSetting({yolo_show_all: this.checked});
+});
+
+// ---- Accepted labels ----
+function renderTags(labels) {
+  const el = document.getElementById('tagList');
+  el.innerHTML = labels.map(l =>
+    '<span class="tag">' + l + ' <span class="x" data-label="' + l + '">x</span></span>'
+  ).join('');
+  el.querySelectorAll('.x').forEach(x => {
+    x.addEventListener('click', () => {
+      const updated = labels.filter(la => la !== x.dataset.label);
+      postSetting({yolo_accepted: updated});
+      renderTags(updated);
+    });
+  });
+}
+document.getElementById('addAccepted').addEventListener('click', () => {
+  const inp = document.getElementById('newLabel');
+  const val = inp.value.trim().toLowerCase();
+  if (!val) return;
+  fetch('/api/settings').then(r=>r.json()).then(d => {
+    const current = d.yolo_accepted || [];
+    if (!current.includes(val)) { current.push(val); postSetting({yolo_accepted: current}); }
+    renderTags(current);
+  });
+  inp.value = '';
+});
+document.getElementById('newLabel').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('addAccepted').click();
+});
+
+// ---- Robot controls ----
+const robotSliders = [
+  { id: 'fwdSpeed',     key: 'forward_speed',  fmt: v => parseFloat(v).toFixed(2) },
+  { id: 'turnSteer',    key: 'turn_steering',  fmt: v => parseFloat(v).toFixed(2) },
+  { id: 'pulseDur',     key: 'pulse_duration', fmt: v => parseFloat(v).toFixed(2) },
+  { id: 'evalInterval', key: 'eval_interval',  fmt: v => parseFloat(v).toFixed(2) },
+];
+robotSliders.forEach(({ id, key, fmt }) => {
+  const sld = document.getElementById(id);
+  const val = document.getElementById('v_' + id);
+  sld.addEventListener('input', () => { val.textContent = fmt(sld.value); });
+  sld.addEventListener('change', () => {
+    const body = {};
+    body[key] = parseFloat(sld.value);
+    postSetting(body);
+  });
+});
+document.getElementById('robotEnabled').addEventListener('change', function() {
+  postSetting({robot_enabled: this.checked});
+});
+
+// ---- Scared mode ----
+document.getElementById('scaredEnabled').addEventListener('change', function() {
+  postSetting({scared_enabled: this.checked});
+});
+const sldScared = document.getElementById('scaredSpeed');
+const valScared = document.getElementById('v_scaredSpeed');
+sldScared.addEventListener('input', () => { valScared.textContent = parseFloat(sldScared.value).toFixed(2); });
+sldScared.addEventListener('change', () => { postSetting({scared_speed: parseFloat(sldScared.value)}); });
+
+function renderScaryTags(labels) {
+  const el = document.getElementById('scaryTagList');
+  el.innerHTML = labels.map(l =>
+    '<span class="tag" style="border-color:var(--accent2); color:var(--accent2); background:#fff4e6;">' +
+    l + ' <span class="x" data-label="' + l + '">x</span></span>'
+  ).join('');
+  el.querySelectorAll('.x').forEach(x => {
+    x.addEventListener('click', () => {
+      const updated = labels.filter(la => la !== x.dataset.label);
+      postSetting({scary_objects: updated});
+      renderScaryTags(updated);
+    });
+  });
+}
+document.getElementById('addScary').addEventListener('click', () => {
+  const inp = document.getElementById('newScary');
+  const val = inp.value.trim().toLowerCase();
+  if (!val) return;
+  fetch('/api/settings').then(r=>r.json()).then(d => {
+    const current = d.scary_objects || [];
+    if (!current.includes(val)) { current.push(val); postSetting({scary_objects: current}); }
+    renderScaryTags(current);
+  });
+  inp.value = '';
+});
+document.getElementById('newScary').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('addScary').click();
+});
+
+// ---- Load initial settings ----
+fetch('/api/settings').then(r=>r.json()).then(d => {
+  if (d.laptop_url) laptopUrlInput.value = d.laptop_url;
+  if (d.yolo_conf !== undefined) {
+    sldConf.value = d.yolo_conf;
+    valConf.textContent = parseFloat(d.yolo_conf).toFixed(2);
+  }
+  if (d.yolo_show_all !== undefined) {
+    document.getElementById('yolo_show_all').checked = d.yolo_show_all;
+  }
+  renderTags(d.yolo_accepted || []);
+  renderScaryTags(d.scary_objects || []);
+  if (d.scared_enabled !== undefined) document.getElementById('scaredEnabled').checked = d.scared_enabled;
+  if (d.scared_speed !== undefined) {
+    sldScared.value = d.scared_speed;
+    valScared.textContent = parseFloat(d.scared_speed).toFixed(2);
+  }
+}).catch(()=>{});
+</script>
+</body>
+</html>
