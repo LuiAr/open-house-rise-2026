@@ -1,12 +1,10 @@
-/open_day_last__year/*
-open_day_last__year/*
-open_day_last__year
 
-xbox_control_and_race/*
-xbox_control_and_race/*
+open_day_last__year
 xbox_control_and_race
 
 *.pt
+
+.DS_Store
 
 open_house_demo/templates/index.html
 open_house_demo/app.py
