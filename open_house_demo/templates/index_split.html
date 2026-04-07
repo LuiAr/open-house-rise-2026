@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Open House — Split</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
     --bg:#ffffff;
@@ -28,13 +29,59 @@
   .header-logos { display:flex; align-items:center; gap:18px; }
   .header-title { font-size:0.95rem; font-weight:600; letter-spacing:0.03em; color:var(--text); white-space:nowrap; }
   .header-right { display:flex; align-items:center; gap:12px; }
-  .main { display:grid; grid-template-columns:1fr 340px; gap:14px; padding:14px; max-width:1400px; margin:0 auto; }
-  @media(max-width:900px){ .main{grid-template-columns:1fr;} }
+  .main { display:grid; grid-template-columns:220px 1fr 340px; gap:14px; padding:14px; max-width:1500px; margin:0 auto; }
+  @media(max-width:1100px){ .main{grid-template-columns:180px 1fr;} .sidebar{display:none;} }
+  @media(max-width:700px){ .main{grid-template-columns:1fr;} .left-panel{display:none;} }
   .video-wrap { background:#000; border-radius:8px; overflow:hidden; }
   .video-wrap img { width:100%; display:block; }
   .sidebar { display:flex; flex-direction:column; gap:10px; max-height:calc(100vh - 70px); overflow-y:auto; }
   .sidebar.hidden { display:none; }
-  .main.full { grid-template-columns:1fr; }
+  .main.full { grid-template-columns:220px 1fr; }
+  .main.no-left { grid-template-columns:1fr 340px; }
+  .main.full.no-left { grid-template-columns:1fr; }
+  .left-panel { display:flex; flex-direction:column; gap:10px; }
+  .left-panel.hidden { display:none; }
+  .linkedin-card {
+    background:var(--card); border-radius:8px; padding:16px 12px;
+    border:1px solid var(--border); display:flex; flex-direction:column;
+    align-items:center; gap:10px; text-align:center;
+  }
+  .linkedin-card .lc-connect {
+    font-size:0.95rem; font-weight:700; color:var(--accent); letter-spacing:0.02em;
+    position:relative; width:100%; cursor:default;
+  }
+  .linkedin-card .lc-connect .lc-hide-btn {
+    position:absolute; right:0; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer;
+    font-size:0.8rem; color:var(--border); line-height:1;
+    opacity:0; transition:opacity 0.15s; padding:2px 4px; border-radius:4px;
+  }
+  .linkedin-card:hover .lc-hide-btn { opacity:1; }
+  .linkedin-card .lc-hide-btn:hover { color:var(--muted); }
+  .linkedin-card .lc-qr {
+    border-radius:6px; overflow:hidden; line-height:0;
+    border:3px solid #0A66C2; padding:4px; background:#fff;
+  }
+  .linkedin-card .lc-name {
+    font-size:0.92rem; font-weight:700; color:var(--text); margin-top:2px;
+  }
+  .linkedin-card .lc-role {
+    font-size:0.75rem; color:var(--muted); line-height:1.5;
+  }
+  .linkedin-card .lc-thesis-label {
+    font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--accent2); font-weight:600; margin-top:4px;
+  }
+  .linkedin-card .lc-thesis {
+    font-size:0.76rem; color:var(--text); font-style:italic;
+    line-height:1.45; border-left:2px solid var(--accent2);
+    padding-left:8px; text-align:left; margin-top:2px;
+  }
+  .linkedin-card .lc-linkedin-link {
+    font-size:0.70rem; color:#0A66C2; text-decoration:none;
+    display:flex; align-items:center; gap:4px; margin-top:2px;
+  }
+  .linkedin-card .lc-linkedin-link:hover { text-decoration:underline; }
   #btnToggleSidebar {
     background:var(--card); border:1px solid var(--border); border-radius:6px;
     padding:4px 12px; cursor:pointer; font-size:0.82rem; color:var(--text);
@@ -116,6 +163,32 @@
 </div>
 
 <div class="main">
+
+  <!-- Left panel — LinkedIn -->
+  <div class="left-panel">
+    <div class="linkedin-card">
+      <div class="lc-connect">
+        Let's connect!
+        <button class="lc-hide-btn" id="btnHideLinkedin" title="Hide panel">✕</button>
+      </div>
+      <div class="lc-qr" id="qrcode"></div>
+      <div class="lc-name">Louis Arbey</div>
+      <div class="lc-role">
+        MSc Artificial Intelligence<br>
+        Stockholm University<br>
+        Master Thesis - RISE Sweden
+      </div>
+      <div class="lc-thesis-label">Thesis</div>
+      <div class="lc-thesis">
+        Modular On-Device VLM-SLM Agents for Autonomous Robotic Lawn Mowers
+      </div>
+      <a class="lc-linkedin-link" href="https://www.linkedin.com/in/louis-arbey/" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.45 20.45h-3.554v-5.57c0-1.328-.024-3.037-1.851-3.037-1.852 0-2.136 1.446-2.136 2.94v5.667H9.356V9h3.413v1.561h.047c.475-.9 1.637-1.85 3.368-1.85 3.602 0 4.267 2.37 4.267 5.455v6.284zM5.337 7.433a2.063 2.063 0 1 1 0-4.126 2.063 2.063 0 0 1 0 4.126zm1.778 13.017H3.56V9h3.555v11.45zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        /in/louis-arbey
+      </a>
+    </div>
+  </div>
+
   <div>
     <div class="video-wrap">
       <img id="feed" src="/video_feed" alt="feed">
@@ -480,6 +553,24 @@ document.getElementById('addScary').addEventListener('click', () => {
 });
 document.getElementById('newScary').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('addScary').click();
+});
+
+// ---- LinkedIn QR code ----
+new QRCode(document.getElementById("qrcode"), {
+  text: "https://www.linkedin.com/in/louis-arbey/",
+  width: 160,
+  height: 160,
+  colorDark: "#0A66C2",
+  colorLight: "#ffffff",
+  correctLevel: QRCode.CorrectLevel.M
+});
+
+// ---- Hide LinkedIn panel ----
+document.getElementById('btnHideLinkedin').addEventListener('click', () => {
+  const panel = document.querySelector('.left-panel');
+  const main = document.querySelector('.main');
+  panel.classList.add('hidden');
+  main.classList.add('no-left');
 });
 
 // ---- Load initial settings ----

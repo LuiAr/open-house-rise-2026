@@ -6,6 +6,7 @@ import threading
 import platform
 import os
 import re
+from collections import deque
 
 from flask import Flask, Response, request, jsonify, render_template
 
@@ -265,6 +266,15 @@ def annotate(frame, target, all_dets, fps, is_scared=False):
     cv2.line(frame, (zone_left, 0), (zone_left, fh), (0, 150, 200), 1)
     cv2.line(frame, (zone_right, 0), (zone_right, fh), (0, 150, 200), 1)
 
+    trail = list(ball_trail)
+    n = len(trail)
+    if n > 1:
+        for i, (tx, ty) in enumerate(trail):
+            age = (i + 1) / n
+            radius = max(1, round(3 * age))
+            brightness = int(80 + 100 * age)
+            cv2.circle(frame, (tx, ty), radius, (brightness, brightness + 20, 80), -1)
+
     if target:
         cx_px = target["cx"]
         if cx_px < zone_left:
@@ -310,6 +320,7 @@ latest_all_dets = []
 latest_scared = False
 actual_fps = 0.0
 frame_lock = threading.Lock()
+ball_trail = deque(maxlen=28)
 
 
 def _open_camera(cam_index, width, height):
@@ -359,6 +370,8 @@ def capture_loop(cam_index, width, height):
         target, all_dets, mask = detect(frame)
         scary_set = {s.lower() for s in settings["scary_objects"]}
         is_scared = bool(scary_set and any(d["label"].lower() in scary_set for d in all_dets))
+        if target:
+            ball_trail.append((target["cx"], target["cy"]))
         annotated = annotate(frame.copy(), target, all_dets, actual_fps, is_scared)
         with frame_lock:
             latest_frame = annotated
