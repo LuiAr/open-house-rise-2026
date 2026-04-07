@@ -1,5 +1,7 @@
 # Ball-Following Robot - Open House Demo
 
+<img src="open_house_demo/RISE_logo.png" height="36" alt="RISE"> &nbsp;&nbsp; X &nbsp;&nbsp; <img src="open_house_demo/husq_logo.png" height="32" alt="Husqvarna">
+
 ## What this does
 
 The laptop runs the AI that detects a yellow tennis ball and tells the robot where to go. You control it through a webpage.
