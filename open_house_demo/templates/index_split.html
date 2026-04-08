@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Open House — Split</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
     --bg:#ffffff;
@@ -171,7 +170,7 @@
         Let's connect!
         <button class="lc-hide-btn" id="btnHideLinkedin" title="Hide panel">✕</button>
       </div>
-      <div class="lc-qr" id="qrcode"></div>
+      <div class="lc-qr"><img src="/qr_linkedin.png" width="160" height="160" alt="LinkedIn QR code"></div>
       <div class="lc-name">Louis Arbey</div>
       <div class="lc-role">
         MSc Artificial Intelligence<br>
@@ -553,16 +552,6 @@ document.getElementById('addScary').addEventListener('click', () => {
 });
 document.getElementById('newScary').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('addScary').click();
-});
-
-// ---- LinkedIn QR code ----
-new QRCode(document.getElementById("qrcode"), {
-  text: "https://www.linkedin.com/in/louis-arbey/",
-  width: 160,
-  height: 160,
-  colorDark: "#0A66C2",
-  colorLight: "#ffffff",
-  correctLevel: QRCode.CorrectLevel.M
 });
 
 // ---- Hide LinkedIn panel ----

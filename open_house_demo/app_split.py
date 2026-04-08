@@ -17,28 +17,6 @@ except ImportError:
     HAS_REQUESTS = False
     print("[Warning] requests not installed — pip install requests")
 
-try:
-    from ultralytics import YOLO as _YOLO
-    HAS_YOLO = True
-except ImportError:
-    HAS_YOLO = False
-    print("[Warning] ultralytics not installed — local YOLO fallback unavailable")
-
-LOCAL_MODEL_NAME = "yolov8n.pt"
-_local_model = None
-_local_model_lock = threading.Lock()
-
-def _ensure_local_model():
-    global _local_model
-    if not HAS_YOLO:
-        return False
-    if _local_model is not None:
-        return True
-    print(f"[Local YOLO] Loading {LOCAL_MODEL_NAME} ...")
-    with _local_model_lock:
-        _local_model = _YOLO(LOCAL_MODEL_NAME)
-    print(f"[Local YOLO] Ready")
-    return True
 
 # Pi detection
 def is_raspberry_pi():
@@ -122,8 +100,8 @@ def find_camera(max_index=10):
 
 # Runtime settings
 settings = {
-    "mode": "remote",
-    "laptop_url": "http://127.0.0.1:5051",
+    # CHANGE HERE FOR YOUR LAPTOP
+    "laptop_url": "http://Luis-MacBook-Pro.local:5051",
     "yolo_conf": 0.40,
     "yolo_show_all": False,
     "yolo_accepted": ["sports ball","orange"],
@@ -203,55 +181,15 @@ def detect_remote(frame):
     return best, all_dets, None
 
 
-# Local YOLOv8n detection (Pi fallback when laptop server is unavailable)
-def detect_local_yolo(frame):
-    if not _ensure_local_model():
-        return None, [], None
-    conf = settings["yolo_conf"]
-    accepted = [a.lower().strip() for a in settings["yolo_accepted"]]
-    with _local_model_lock:
-        results = _local_model(frame, verbose=False, conf=conf)
-    all_dets = []
-    for result in results:
-        for box in result.boxes:
-            cls_id = int(box.cls[0])
-            label = _local_model.names[cls_id]
-            c = float(box.conf[0])
-            x1, y1, x2, y2 = box.xyxy[0].tolist()
-            cx = int((x1 + x2) / 2)
-            cy = int((y1 + y2) / 2)
-            bw = int(x2 - x1)
-            bh = int(y2 - y1)
-            all_dets.append({
-                "label": label,
-                "cx": cx, "cy": cy,
-                "x1": int(x1), "y1": int(y1),
-                "x2": int(x2), "y2": int(y2),
-                "w": bw, "h": bh,
-                "conf": round(c, 3),
-                "is_target": label.lower() in accepted,
-            })
-    targets = [d for d in all_dets if d["is_target"]]
-    best = None
-    if targets:
-        best = max(targets, key=lambda d: d["w"] * d["h"])
-        best["radius"] = max(best["w"], best["h"]) // 2
-        best["area"] = best["w"] * best["h"]
-    return best, all_dets, None
-
-
 def detect(frame):
-    if settings["mode"] == "remote":
-        return detect_remote(frame)
-    return detect_local_yolo(frame)
+    return detect_remote(frame)
 
 
 # Annotation
 def annotate(frame, target, all_dets, fps, is_scared=False):
     fh, fw = frame.shape[:2]
-    mode = settings["mode"]
 
-    if mode == "remote" and settings["yolo_show_all"]:
+    if settings["yolo_show_all"]:
         for d in all_dets:
             if d.get("is_target"):
                 continue
@@ -302,7 +240,7 @@ def annotate(frame, target, all_dets, fps, is_scared=False):
         cv2.putText(frame, "No ball detected", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-    label = f"[REMOTE] FPS: {fps:.1f}" if mode == "remote" else f"[LOCAL YOLOv8n] FPS: {fps:.1f}"
+    label = f"[REMOTE] FPS: {fps:.1f}"
     cv2.putText(frame, label, (fw - 240, 30),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
     if is_scared and settings["scared_enabled"]:
@@ -391,6 +329,7 @@ def _publish_drive(speed, steering):
         msg.speed = float(speed)
         msg.steering = float(steering)
         _drive_pub.publish(msg)
+        rclpy.spin_once(_ros_node, timeout_sec=0.05)
     else:
         print(f"[Robot] speed={speed:.2f}  steering={steering:.2f}")
 
@@ -509,7 +448,7 @@ def api_status():
 
     data = {
         "fps": round(actual_fps, 1),
-        "mode": settings["mode"],
+        "mode": "remote",
         "is_pi": IS_PI,
         "robot_enabled": settings["robot_enabled"],
         "robot_command": r_cmd,
@@ -548,8 +487,6 @@ def set_settings():
         settings["yolo_show_all"] = bool(data["yolo_show_all"])
     if "yolo_accepted" in data:
         settings["yolo_accepted"] = [s.strip().lower() for s in data["yolo_accepted"] if s.strip()]
-    if "mode" in data and data["mode"] in ("remote", "local"):
-        settings["mode"] = data["mode"]
     if "laptop_url" in data:
         settings["laptop_url"] = data["laptop_url"].strip()
         with remote_lock:
@@ -565,6 +502,12 @@ def set_settings():
         settings["scared_speed"] = float(data["scared_speed"])
 
     return jsonify(ok=True)
+
+
+@app.route("/qr_linkedin.png")
+def serve_qr():
+    from flask import send_from_directory
+    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), "qr_linkedin.png")
 
 
 @app.route("/api/ping_server")

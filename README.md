@@ -21,16 +21,34 @@ python laptop_server.py
 **Step 3** - On the Raspberry Pi, run:
 
 ```
-python3 <PATH_TO_FILE.py>
+python3 open-house-2026/app_split.py
 ```
 
 **Step 4** - Open the web browser on the laptop and go to:
 
 ```
-http://localhost:5050
+http://192.168.4.1:5050/
 ```
 
 Thats where the dashboard with the camera feed and the controls are.
+
+---
+
+## Before the first run — settings to check
+
+Open `open-house-2026/app_split.py` in a text editor and check these two lines near the top of the file:
+
+**Laptop URL** - must match the laptop's hostname on the local network:
+```python
+"laptop_url": "http://Luis-MacBook-Pro.local:5051",
+```
+
+If this laptop has a different hostname, replace `Luis-MacBook-Pro.local` with the correct one. To find the hostname, open Terminal and run:
+```
+hostname
+```
+
+Save the file after any changes, then restart the app on the Pi.
 
 ---
 
