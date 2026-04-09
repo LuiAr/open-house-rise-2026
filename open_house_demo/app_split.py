@@ -29,7 +29,7 @@ def is_raspberry_pi():
 IS_PI = is_raspberry_pi()
 print(f"[Platform] Running on {'Raspberry Pi' if IS_PI else 'non-Pi (robot commands will print only)'}")
 
-# ROS 2 robot control — only initialised on Pi
+# ROS 2 robot control (only initialised on Pi)
 HAS_ROS = False
 _ros_node = None
 _drive_pub = None
@@ -137,7 +137,7 @@ robot_last_command = "STOP"
 robot_lock = threading.Lock()
 
 
-# Remote detection — sends frame to MacBook server
+# Remote detection (sends frame to MacBook server)
 def detect_remote(frame):
     if not HAS_REQUESTS:
         return None, [], None
@@ -183,7 +183,6 @@ def detect_remote(frame):
         best["radius"] = max(best["w"], best["h"]) // 2
         best["area"] = best["w"] * best["h"]
     return best, all_dets, None
-
 
 def detect(frame):
     return detect_remote(frame)
@@ -302,7 +301,7 @@ def capture_loop(cam_index, width, height):
                 time.sleep(2)
                 cap = _open_camera(cam_index, width, height)
                 if cap is None:
-                    print("[Camera] Reconnect failed — will retry ...")
+                    print("[Camera] Reconnect failed - will retry ...")
                     time.sleep(3)
                     cap = _open_camera(cam_index, width, height) or cv2.VideoCapture(cam_index)
                 consecutive_failures = 0
@@ -388,6 +387,7 @@ def robot_loop():
                 steer = -settings["turn_steering"]
                 cmd = "ROTATE RIGHT"
 
+            # Send drive command
             _publish_drive(spd, steer)
             with robot_lock:
                 robot_last_command = cmd

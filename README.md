@@ -2,9 +2,27 @@
 
 <img src="open_house_demo/RISE_logo.png" height="36" alt="RISE"> &nbsp;&nbsp; X &nbsp;&nbsp; <img src="open_house_demo/husq_logo.png" height="32" alt="Husqvarna">
 
-## What this does
+## Summary
 
 The laptop runs the AI that detects a yellow tennis ball and tells the robot where to go. You control it through a webpage.
+
+---
+
+## Before the first run — settings to check
+
+Open `open-house-2026/app_split.py` (in the raspberry pi if already moved there) check these two lines near the top of the file:
+
+**Laptop URL** - must match the laptop's hostname on the local network:
+```python
+"laptop_url": "http://Luis-MacBook-Pro.local:5051",
+```
+
+If this laptop has a different hostname, replace `Luis-MacBook-Pro.local` with the correct one. To find the hostname, open Terminal and run:
+```
+hostname
+```
+
+Save the file after any changes, then restart the app on the Pi.
 
 ---
 
@@ -31,24 +49,6 @@ http://192.168.4.1:5050/
 ```
 
 Thats where the dashboard with the camera feed and the controls are.
-
----
-
-## Before the first run — settings to check
-
-Open `open-house-2026/app_split.py` in a text editor and check these two lines near the top of the file:
-
-**Laptop URL** - must match the laptop's hostname on the local network:
-```python
-"laptop_url": "http://Luis-MacBook-Pro.local:5051",
-```
-
-If this laptop has a different hostname, replace `Luis-MacBook-Pro.local` with the correct one. To find the hostname, open Terminal and run:
-```
-hostname
-```
-
-Save the file after any changes, then restart the app on the Pi.
 
 ---
 
