@@ -17,10 +17,7 @@ Open `open-house-2026/app_split.py` (in the raspberry pi if already moved there)
 "laptop_url": "http://Luis-MacBook-Pro.local:5051",
 ```
 
-If this laptop has a different hostname, replace `Luis-MacBook-Pro.local` with the correct one. To find the hostname, open Terminal and run:
-```
-hostname
-```
+If this laptop has a different hostname, replace `Luis-MacBook-Pro.local` with the correct one. To find the hostname, open the settings and go to "General -> Sharing -> Local hostname"
 
 Save the file after any changes, then restart the app on the Pi.
 
