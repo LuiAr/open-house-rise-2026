@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Pi-side app — streams frames to laptop_server.py for YOLO inference, runs the dashboard and robot control
+# streams frames to laptop_server.py for YOLO inference, runs the dashboard and robot control
 import cv2
 import time
 import threading
@@ -50,8 +50,12 @@ if IS_PI:
         _drive_pub = _ros_node.create_publisher(
             _DriveCmd, "/hqv_mower/remote_driver/drive", 10
         )
+        import threading as _threading
+        _ros_spin_thread = _threading.Thread(target=rclpy.spin, args=(_ros_node,), daemon=True)
+        _ros_spin_thread.start()
         HAS_ROS = True
         print("[ROS2] Publisher ready on /hqv_mower/remote_driver/drive")
+        print("[ROS2] Spin thread started")
     except Exception as _e:
         print(f"[ROS2] Not available: {_e}")
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-# YOLOv8l inference server — MacBook side of the split compute pipeline
+# YOLOv8l inference server - MacBook side of the split compute pipeline
 import threading
 import time
 
+# define model to use
 MODEL = "yolov8l.pt"
 HOST = "0.0.0.0"
+# define port, usually 5000 is taken by macos
 PORT = 5051
 
 import numpy as np
