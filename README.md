@@ -23,6 +23,16 @@ Save the file after any changes, then restart the app on the Pi.
 
 ---
 
+## Environement and dependencies
+
+Use any environment of your choice as you long as you install all required packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
 ## Starting the demo
 
 **Step 1** - Make sure the OBSBOT camera is plugged into the Raspberry Pi.
